@@ -1,0 +1,251 @@
+function clearFields() {
+	debugger;
+	if (stepNumber == 1) {
+		$("#productCreateUpdateReason").val("");
+		$("#productApproverGroup").val("");
+		
+		if (wizardObject[step_01]){
+		var gbuTemp = wizardObject[step_01]['gbuList'][0].gbu;
+		$('#gbu').val(gbuTemp);
+		fetchLookUpVal(gbu, 'PRODUCT TYPE', null, null, 'productType');
+		$('#productType').val(wizardObject[step_01]["gbuList"][0].productType);
+		$('#productCreateUpdateReason').val(wizardObject[step_01]["gbuList"][0].productCreateUpdateReason);
+		fetchLookUpVal(gbuTemp, 'WORKFLOW APPR GRP', null, null,'productApproverGroup');
+		$('#productApproverGroup').val(wizardObject[step_01]["gbuList"][0].productApproverGroup);
+		}
+	} else if (stepNumber == 2) {
+		$(".undoFields").val("").trigger('change');
+		$( ":checkbox").prop('checked', false);
+		
+		if (wizardObject[step_02]){
+		var brand = wizardObject[step_02]['brandList'][0].brand;
+		$("#brand").val(wizardObject[step_02]['brandList'][0].brand).trigger('change');
+		fetchLookUpVal(gbu, 'sub brand', 'brand', brand, 'subBrand');
+		$('#subBrand').val(wizardObject[step_02]['brandList'][0].subBrand).trigger('change');
+		$('#brandStrategy').val(wizardObject[step_02]['brandList'][0].brandStrategy);
+		fetchLookUpVal(gbu, 'style', 'brand', brand, 'styleCode');
+		$("#styleCode").val(wizardObject[step_02]['brandList'][0].styleCode).trigger('change');
+		$('#acquisitionName').val(wizardObject[step_02]['brandList'][0].acquisitionName).trigger('change');
+		$('#productSBI').val(wizardObject[step_02]['brandList'][0].productSBI);
+		productDivisionLov();
+		$('#productDivision').val(wizardObject[step_02]['brandList'][0].productDivision);
+		var m4Family = wizardObject[step_02]['brandList'][0].m4Family;
+		$('#m4Family').val(wizardObject[step_02]['brandList'][0].m4Family).trigger('change');
+		fetchLookUpVal(gbu, 'M4 Product Group', 'M4 FAMILY', m4Family,'m4ProductGroup');
+		var m4ProdGrp = wizardObject[step_02]['brandList'][0].m4ProductGroup;
+		$('#m4ProductGroup').val(wizardObject[step_02]['brandList'][0].m4ProductGroup);
+		fetchLookUpVal(gbu, 'M4 CATEGORY', 'M4 Product group', m4ProdGrp,'m4Category');
+		$('#m4Category').val(wizardObject[step_02]['brandList'][0].m4Category);
+		$('#launchYear').val(wizardObject[step_02]['brandList'][0].launchYear);
+		$('#ansellStandardUOM').val(wizardObject[step_02]['brandList'][0].ansellStandardUOM);
+		$('#shelfLife').val(wizardObject[step_02]['brandList'][0].shelfLife);
+		$('#sterility').val(wizardObject[step_02]['brandList'][0].sterility);
+		// $('#variant').val(jsonData["brandList"][0].variant);
+		$('#inventoryCategory').val(wizardObject[step_02]['brandList'][0].inventoryCategory).trigger('change');
+		$('#inventoryFamily').val(wizardObject[step_02]['brandList'][0].inventoryFamily);
+		// $('#productDescSuffix').val(jsonData["brandList"][0].productDescSuffix);
+		if (wizardObject[step_02]['brandList'][0].cbox1 == 'Y') {
+			$("#cbox1").prop('checked', true);
+		} else {
+			$("#cbox1").prop('checked', false);
+		}
+		if (wizardObject[step_02]['brandList'][0].costApprovedChckbox == 'Y') {
+			$("#costApprovedChckbox").prop('checked', true);
+		} else {
+			$("#costApprovedChckbox").prop('checked', false);
+		}
+		}
+	} else if (stepNumber == 3) {
+		var productCacheLength = jsonObject.length;
+		for (var productLengthCounter = 0; productLengthCounter < productCacheLength; productLengthCounter++) {
+			$("#productTable tr:nth(1)").remove();
+			$("#productTable tr:nth(1)").remove();
+			$("#productTable tr:nth(1)").remove();
+			jsonObject.splice(0, 1);
+			productErrorArray.splice(0, 1);
+			internalIdArr.splice(0, 1);
+			var idLength = internalIdArr.length;
+			internalIdString = '';
+			for (var iInternalIdCounter = 0; iInternalIdCounter < idLength; iInternalIdCounter++) {
+				var message = "," + internalIdArr[iInternalIdCounter];
+				internalIdString = internalIdString.concat(message);
+			}
+			internalIdString = internalIdString + ",";
+		}
+		if(wizardObject[step_03] != ""){
+			showProductData();
+		}
+
+	} else if (stepNumber == 4) {
+		debugger;
+		var sosCacheLength = jsonObject.length;
+		for (var sosLengthCounter = 0; sosLengthCounter < sosCacheLength; sosLengthCounter++) {
+			$("#sosTable tr:nth(1)").remove();
+			jsonObject.splice(0, 1);
+			sosErrorArray.splice(0, 1);
+		}
+		showSOSData();
+
+	} else if (stepNumber == 5) {
+		debugger;
+		var regionCacheLength = jsonObject.length;
+		for (var undoRegionCounter = 0; undoRegionCounter < regionCacheLength; undoRegionCounter++) {
+			debugger;
+			deleteItem(jsonObject[0].name, this);
+		}
+			if(wizardObject[step_05]["regionList"]){
+				for(var undoRegionCounter=0; undoRegionCounter < wizardObject[step_05]["regionList"].length; undoRegionCounter++){
+			switch (wizardObject[step_05]["regionList"][undoRegionCounter].name) {
+			case "GTC":
+				undoGtc(undoRegionCounter);
+				break;
+			case "EMEA":
+				undoEmea(undoRegionCounter);
+				break;
+			case "EMEA-SW":
+				undoEmeaSw(undoRegionCounter);
+				break;
+			case "NALAC":
+				undoNalac(undoRegionCounter);
+				break;
+			case "APAC":
+				undoApac(undoRegionCounter);
+				break;
+			}
+		}}
+	}
+}
+
+function undoGtc(undoRegionCounter){
+$("select#addRegionOptions option[value*=1]").prop('disabled', true).css('background-color', '#CCC');
+	
+	fetchAccountValues();
+	
+	wizardObject[step_05]["regionList"][undoRegionCounter].costOfGoodsSoldAccount325GTCPreField =$("#costOfGoodsSoldAccount325GTCPreField").val();
+	wizardObject[step_05]["regionList"][undoRegionCounter].costOfGoodsSoldAccount325GTCPostField =$("#costOfGoodsSoldAccount325GTCPostField").val();
+	wizardObject[step_05]["regionList"][undoRegionCounter].salesAccount325GTCPreField =$("#salesAccount325GTCPreField").val();
+	wizardObject[step_05]["regionList"][undoRegionCounter].salesAccount325GTCPostField =$("#salesAccount325GTCPostField").val();
+	wizardObject[step_05]["regionList"][undoRegionCounter].expenseAccounts325GTCPreField =$("#expenseAccounts325GTCPreField").val();
+	wizardObject[step_05]["regionList"][undoRegionCounter].expenseAccounts325GTCPostField =$("#expenseAccounts325GTCPostField").val();
+	
+	wizardObject[step_05]["regionList"][undoRegionCounter].costOfGoodsSoldAccount355GTCPreField =$("#costOfGoodsSoldAccount355GTCPreField").val();
+	wizardObject[step_05]["regionList"][undoRegionCounter].costOfGoodsSoldAccount355GTCPostField =$("#costOfGoodsSoldAccount355GTCPostField").val();
+	wizardObject[step_05]["regionList"][undoRegionCounter].salesAccount355GTCPreField =$("#salesAccount355GTCPreField").val();
+	wizardObject[step_05]["regionList"][undoRegionCounter].salesAccount355GTCPostField =$("#salesAccount355GTCPostField").val();
+	wizardObject[step_05]["regionList"][undoRegionCounter].expenseAccounts355GTCPreField =$("#expenseAccounts355GTCPreField").val();
+	wizardObject[step_05]["regionList"][undoRegionCounter].expenseAccounts355GTCPostField =$("#expenseAccounts355GTCPostField").val();
+	
+	wizardObject[step_05]["regionList"][undoRegionCounter].valueForGLCode = $("#valueForGLCode").val();
+	
+	populateDataByFormula(wizardObject[step_05]["regionList"][undoRegionCounter]);
+	
+	$('#gtcTable tr:nth(1) td:nth(0)').html(wizardObject[step_05]["regionList"][undoRegionCounter].productStatus);
+	$('#gtcTable tr:nth(1) td:nth(1)').html(wizardObject[step_05]["regionList"][undoRegionCounter].primarySellingUOM);
+	$('#gtcTable tr:nth(1) td:nth(2)').html(wizardObject[step_05]["regionList"][undoRegionCounter].secondarySellingUOM);
+	$('#gtcTable tr:nth(1) td:nth(3)').html(wizardObject[step_05]["regionList"][undoRegionCounter].lowestShippableUOM);
+	$('#gtcTable tr:nth(1) td:nth(4)').html(wizardObject[step_05]["regionList"][undoRegionCounter].family);
+	$('#gtcTable tr:nth(1) td:nth(5)').html(wizardObject[step_05]["regionList"][undoRegionCounter].group);
+	$('#gtcTable tr:nth(1) td:nth(6)').html(wizardObject[step_05]["regionList"][undoRegionCounter].subGroup);
+	$('#gtcTable tr:nth(1) td:nth(7)').html(wizardObject[step_05]["regionList"][undoRegionCounter].subGroupType);
+
+	$('#gtcTable tr:nth(1) td:nth(8)').html(wizardObject[step_05]["regionList"][undoRegionCounter].costOfGoodsSoldAccount);
+	$('#gtcTable tr:nth(1) td:nth(9)').html(wizardObject[step_05]["regionList"][undoRegionCounter].costOfGoodsSoldAccount355);
+	$('#gtcTable tr:nth(1) td:nth(10)').html(wizardObject[step_05]["regionList"][undoRegionCounter].salesAccount);
+	$('#gtcTable tr:nth(1) td:nth(11)').html(wizardObject[step_05]["regionList"][undoRegionCounter].salesAccount355);
+	$('#gtcTable tr:nth(1) td:nth(12)').html(wizardObject[step_05]["regionList"][undoRegionCounter].expenseAccounts);
+	$('#gtcTable tr:nth(1) td:nth(13)').html(wizardObject[step_05]["regionList"][undoRegionCounter].expenseAccounts355);
+	$('#gtcTable tr:nth(1) td:nth(14)').html(wizardObject[step_05]["regionList"][undoRegionCounter].divisionAndTransferPriceCategory);
+	var decodedDivisionAndTransfer = $("<div/>").html(wizardObject[step_05]["regionList"][undoRegionCounter].divisionAndTransferPriceCategory).text();
+	$('#gtcTable tr:nth(1) td:nth(15)').html(wizardObject[step_05]["regionList"][undoRegionCounter].regionRowId);
+	jsonObject.push(wizardObject[step_05]["regionList"][undoRegionCounter]);
+	$("#div_region_gtc").show();
+}
+
+function undoEmea(undoRegionCounter){
+	$("select#addRegionOptions option[value*=2]").prop('disabled',true).css('background-color', '#CCC');
+	$('#emeaTable tr:nth(1) td:nth(0)').html(wizardObject[step_05]["regionList"][undoRegionCounter].productStatus);
+	$('#emeaTable tr:nth(1) td:nth(1)').html(wizardObject[step_05]["regionList"][undoRegionCounter].soldToRussia);
+	$('#emeaTable tr:nth(1) td:nth(2)').html(wizardObject[step_05]["regionList"][undoRegionCounter].materialGroup2);
+	if (wizardObject[step_05]["regionList"][undoRegionCounter].soldToRussia) {
+		$('#emeaTable tr:nth(1) td:nth(3)').html(wizardObject[step_05]["regionList"][undoRegionCounter].russianLabel);
+	} else {
+		$('#emeaTable tr:nth(1) td:nth(3)').html(wizardObject[step_05]["regionList"][undoRegionCounter].russianLabel = "");
+	}
+
+	$('#emeaTable tr:nth(1) td:nth(4)').html(wizardObject[step_05]["regionList"][undoRegionCounter].primarySellingUOM);
+	$('#emeaTable tr:nth(1) td:nth(5)').html(wizardObject[step_05]["regionList"][undoRegionCounter].regionRowId);
+	jsonObject.push(wizardObject[step_05]["regionList"][undoRegionCounter]);
+	$("#div_region_emea").show();
+}
+
+function undoEmeaSw(undoRegionCounter){
+	$("select#addRegionOptions option[value*=3]").prop('disabled', true).css('background-color', '#CCC');
+	$('#emeaswTable tr:nth(1) td:nth(0)').html(wizardObject[step_05]["regionList"][undoRegionCounter].productStatus);
+	$('#emeaswTable tr:nth(1) td:nth(1)').html(wizardObject[step_05]["regionList"][undoRegionCounter].primarySellingUOM);
+	$('#emeaswTable tr:nth(1) td:nth(2)').html(wizardObject[step_05]["regionList"][undoRegionCounter].regionRowId);
+	jsonObject.push(wizardObject[step_05]["regionList"][undoRegionCounter]);
+	$("#div_region_emea_sw").show();
+}
+
+function undoNalac(undoRegionCounter){
+	debugger
+$("select#addRegionOptions option[value*=4]").prop('disabled', true).css('background-color', '#CCC');
+	console.log(cacheSubRegionItem);
+	
+	populateDataByFormula(wizardObject[step_05]["regionList"][undoRegionCounter]);
+	
+	$('#nalacTable tr:nth(1) td:nth(0)').html(wizardObject[step_05]["regionList"][undoRegionCounter].productStatus);
+	$('#nalacTable tr:nth(1) td:nth(1)').html(wizardObject[step_05]["regionList"][undoRegionCounter].primarySellingUOM);
+	$('#nalacTable tr:nth(1) td:nth(2)').html(wizardObject[step_05]["regionList"][undoRegionCounter].secondarySellingUOM);
+	$('#nalacTable tr:nth(1) td:nth(3)').html(wizardObject[step_05]["regionList"][undoRegionCounter].lowestShippableUOM);
+	$('#nalacTable tr:nth(1) td:nth(4)').html(wizardObject[step_05]["regionList"][undoRegionCounter].divisionAndTransferPriceCategory);
+	$('#nalacTable tr:nth(1) td:nth(5)').html(wizardObject[step_05]["regionList"][undoRegionCounter].regionRowId);
+	
+	jQuery(".nalac-subregion tr:not(:first)").remove();	
+	
+	/*if(selectedSubRegionsDropdownIds.length == 0 && wizardObject[step_05]["regionList"][undoRegionCounter].subRegList != null){
+		selectedSubRegionsDropdownIds = wizardObject[step_05]["regionList"][undoRegionCounter].subRegList;
+	}*/
+	
+	if(selectedSubRegionsDropdownIds.length == 0 && wizardObject[step_05]["regionList"][undoRegionCounter].subRegList != null){
+		selectedSubRegionsDropdownIds = cacheSubRegionItem;
+	}
+	
+	if(cacheSubRegionItem.length > 0){
+		jQuery.each(cacheSubRegionItem, function(index, value){
+			var trSubRegion = "<tr>";
+			trSubRegion += "<td>" + value.subRegion + "</td>";
+			trSubRegion += "<td>" + value.orgsInSubRegion + "</td>";
+			trSubRegion += "<td style=\"display: none;\">" + value.rowIdSubRegion + "</td>";
+			trSubRegion += "</tr>";
+			jQuery(".nalac-subregion").append(trSubRegion);
+		});
+	}
+	
+	
+	if(wizardObject[step_05]["regionList"][undoRegionCounter].subRegList != null){
+		//subRegionArr = cacheSubRegionItem;
+		subRegionArr = new Array();
+		for(var iCounter = 0; iCounter < cacheSubRegionItem.length; iCounter++){
+			var subRegionObj = new Object();
+			subRegionObj.subRegion = cacheSubRegionItem[iCounter].subRegion;
+			subRegionObj.orgsInSubRegion = cacheSubRegionItem[iCounter].orgsInSubRegion;
+			subRegionObj.rowIdSubRegion = cacheSubRegionItem[iCounter].rowIdSubRegion;
+			subRegionArr.push(subRegionObj);
+		}
+		//wizardObject[step_05]["regionList"][undoRegionCounter].subRegList = selectedSubRegionsDropdownIds;
+	}
+	
+	jsonObject.push(wizardObject[step_05]["regionList"][undoRegionCounter]);
+	$("#div_region_na_lac").show();
+}
+
+function undoApac(undoRegionCounter){
+	debugger;
+	$("select#addRegionOptions option[value*=5]").prop('disabled', true).css('background-color', '#CCC');
+	$('#apacTable tr:nth(1) td:nth(0)').html(wizardObject[step_05]["regionList"][undoRegionCounter].productStatus);
+	$('#apacTable tr:nth(1) td:nth(1)').html(wizardObject[step_05]["regionList"][undoRegionCounter].primarySellingUOM);
+	$('#apacTable tr:nth(1) td:nth(2)').html(wizardObject[step_05]["regionList"][undoRegionCounter].regionRowId);
+	jsonObject.push(wizardObject[step_05]["regionList"][undoRegionCounter]);
+	$("#div_region_apac").show();
+}

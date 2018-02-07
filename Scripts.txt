@@ -1,0 +1,8 @@
+INSERT INTO RESOURCE_BUNDLE (RESOURCE_KEY, LANGUAGE_ID, TEXT) VALUES ('label.collapseComments', '1', 'Collapse Comments')
+
+
+INSERT INTO RESOURCE_BUNDLE (RESOURCE_KEY, LANGUAGE_ID, TEXT) VALUES ('label.lengthCm', '1', 'Outer Case Length (cm)');
+
+INSERT INTO RESOURCE_BUNDLE (RESOURCE_KEY, LANGUAGE_ID, TEXT) VALUES ('label.widthCm', '1', 'Outer Case Width (cm)');
+
+INSERT INTO RESOURCE_BUNDLE (RESOURCE_KEY, LANGUAGE_ID, TEXT) VALUES ('label.heightCm', '1', 'Outer Case Height (cm)');

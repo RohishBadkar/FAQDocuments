@@ -1,0 +1,33 @@
+customui
+
+anh150.coresys.com/1522/ANHDMDM
+
+Tr1gynBel@
+
+Bela DB 192.168.0.119
+
+aman ap pass : qwerty@#321
+
+svn : rohish@321
+
+mysqldump -uroot -psecured -h192.168.102.123 integration_db_feb2018 --routines >D:\integration_db_feb2018.sql
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `integrationdb`.`documentsgrid` AS 
+(select `dm`.`document_master_id` AS `document_master_id`,`dsm`.`doc_subtype` AS `doc_subtype`,
+`dm`.`doc_id` AS `doc_id`,`dmi18n`.`document_description` AS `document_description`,`dm`.`doc_category` AS `doc_category`,
+count(distinct `chm`.`chem_substance_id`) AS `countmix`,count(distinct `chm1`.`chem_substance_id`) AS `countsgl`,
+concat(`ud`.`first_name`,' ',`ud`.`last_name`) AS `updated_by`
+,concat(`ud1`.`first_name`,' ',`ud1`.`last_name`) AS `created_by`,`dm`.`updated_date` AS `updated_date`,`dm`.`is_deleted` AS `is_deleted` 
+from (((((((`integrationdb`.`crms_document_master` `dm` left join `integrationdb`.`crms_doc_subtype_master` `dsm` 
+on(((`dm`.`doc_subtype_master_id` = `dsm`.`subtype_master_id`) and (`dsm`.`is_deleted` = 0)))) 
+left join `integrationdb`.crms_document_master_i18n `dmi18n` on ((( `dm`.`document_master_id` = `dmi18n`.`document_master_id`)))
+left join `integrationdb`.`int_user` `ud` on(((`ud`.`user_id` = `dm`.`updated_by`) and (`ud`.`is_deleted` = 0)))) 
+left join `integrationdb`.`int_user` `ud1` on(((`ud1`.`user_id` = `dm`.`created_by`) and (`ud1`.`is_deleted` = 0)))) 
+left join `integrationdb`.`crms_docmaster_chemsubstance_assoc` `asso` on(((`dm`.`document_master_id` = `asso`.`document_master_id`) 
+and (`asso`.`is_deleted` = 0)))) left join `integrationdb`.`crms_chemical_substance` `chm` 
+on(((`asso`.`chem_substance_id` = `chm`.`chem_substance_id`) and (`chm`.`is_mix` = 1) and (`chm`.`is_deleted` = 0)))) 
+left join `integrationdb`.`crms_docmaster_chemsubstance_assoc` `asso1` 
+on(((`dm`.`document_master_id` = `asso1`.`document_master_id`) and (`asso1`.`is_deleted` = 0)))) 
+left join `integrationdb`.`crms_chemical_substance` `chm1` 
+on(((`asso1`.`chem_substance_id` = `chm1`.`chem_substance_id`) and (`chm1`.`is_mix` = 0) and (`chm1`.`is_deleted` = 0)))) 
+where (`dm`.`is_deleted` = 0) group by `dm`.`document_master_id`);

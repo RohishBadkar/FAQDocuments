@@ -1,8 +1,32 @@
-INSERT INTO RESOURCE_BUNDLE (RESOURCE_KEY, LANGUAGE_ID, TEXT) VALUES ('label.collapseComments', '1', 'Collapse Comments')
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>New User</title>
+</head>
 
+<body>
 
-INSERT INTO RESOURCE_BUNDLE (RESOURCE_KEY, LANGUAGE_ID, TEXT) VALUES ('label.lengthCm', '1', 'Outer Case Length (cm)');
+<div align="center">
+        <h1>New/Edit User</h1>
+        <form action="./saveUser" method="post" modelAttribute="user">
+        <table>
+            <form hidden path="userId"/>
+            <tr>
+                <td>UserName:</td>
+                <td><input type="text" path="username" /></td>
+            </tr>
+            <tr>
+                <td>Password:</td>
+                <td><input type="text" path="password" /></td>
+            </tr>
+            <tr>
+            
+                <a href="index.jsp"><td colspan="2" align="center"><input type="submit" value="Save">
+                </td></a>
+            </tr>
+        </table>
+        </form>
+    </div>
 
-INSERT INTO RESOURCE_BUNDLE (RESOURCE_KEY, LANGUAGE_ID, TEXT) VALUES ('label.widthCm', '1', 'Outer Case Width (cm)');
-
-INSERT INTO RESOURCE_BUNDLE (RESOURCE_KEY, LANGUAGE_ID, TEXT) VALUES ('label.heightCm', '1', 'Outer Case Height (cm)');
+</body>
+</html>

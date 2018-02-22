@@ -1,1 +1,32 @@
-Hi
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>New User</title>
+</head>
+
+<body>
+
+<div align="center">
+        <h1>New/Edit User</h1>
+        <form action="./saveUser" method="post" modelAttribute="user">
+        <table>
+            <form hidden path="userId"/>
+            <tr>
+                <td>UserName:</td>
+                <td><input type="text" path="username" /></td>
+            </tr>
+            <tr>
+                <td>Password:</td>
+                <td><input type="text" path="password" /></td>
+            </tr>
+            <tr>
+            
+                <a href="index.jsp"><td colspan="2" align="center"><input type="submit" value="Save">
+                </td></a>
+            </tr>
+        </table>
+        </form>
+    </div>
+
+</body>
+</html>

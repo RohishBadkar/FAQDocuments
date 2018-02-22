@@ -73,11 +73,12 @@ var subRegionValue = new Array();
 var packagingInfoArray = new Array();
 var noSpecialCharchters = "Only alphabets,digits,space,\\\,.,-, (, ),/,\" are allowed in ";
 var resetAutocompleteArrayStyle  = new Array();
-var cacheSubRegionItem = new Array();
+var errorReturn =  false;
 
 function navigate(nextSource, form1) {
 	var json;
 	userAction = false;
+	errorReturn= false;
 	var StepNumberEnum = {
 		step1 : 1,
 		step2 : 2,
@@ -110,7 +111,6 @@ function navigate(nextSource, form1) {
 	}
 	if (form1 != null) {
 		json = JSON.stringify(jsonObject);
-
 		if (currentSource == 1) {
 			json = "{" + '"gbuList"' + ":" + json + "}";
 			$.each(completeJsonArr, function( index, obj) {
@@ -155,112 +155,44 @@ function navigate(nextSource, form1) {
 						return false;
 					}
 				});
-		}
-		
-		if(currentSource < 6){
-			completeJsonArr.push(JSON.parse(json));
-		}
-		var isValid = validate(validationRuleList,completeJsonArr);
-		if(!isValid){
-			var errorMessage = '';
-			$.each(errors, function( index, error) {
-				if(currentSource == 1){
-					errorMessage = errorMessage + bulletStyle + error.message + jqLineBreak;
-				} else {
-					errorMessage = errorMessage + bulletStyle + error.message + lineBreak;
-				}
-				$("#"+error.fieldId).css("border-color","red");
-				resetStyle.push(error.fieldId);
-				$("[aria-labelledby='select2-"+error.fieldId+"-container']").css("border-color","red");
-				resetAutocompleteArrayStyle.push("[aria-labelledby='select2-"+error.fieldId+"-container']");
+		} else if((editScreen === undefined || editScreen === 'copyProduct' || editScreen === 'newSOSForEMEA_APAC') && stepNumber == 7){
+				$.confirm({
+			    title: 'Confirm',
+			    content: 'Is the cost of the product appoved?',
+			    buttons: {
+			        Yes: function () {
+			        	for(var iCounter = 0 ; iCounter < completeJsonArr.length ; iCounter++ ){
+			        		if(completeJsonArr[iCounter].brandList != undefined){
+			        			completeJsonArr[iCounter]["brandList"][0].costApprovedChckbox = 'Y';
+			        			json = "{" + '"brandList"' + ":" + JSON.stringify(completeJsonArr[iCounter]["brandList"]) + "}";
+			        			$.each(completeJsonArr, function (index, obj){
+									if("brandList" in obj){
+											completeJsonArr.splice(index,1);
+											return false;
+										}
+								});
+			        		}
+			        	}
+						completeJsonArr.push(JSON.parse(json));
+			        	formValidationFunction(json);
+			        	wizardStepAjaxFunction(json,nextSource);
+			        },
+			        No: function () {
+			        	formValidationFunction(json);
+			        	wizardStepAjaxFunction(json,nextSource);
+			        }
+			    }
 			});
-			if(currentSource == 1){
-				$.alert({
-					title	: '',
-				    content : errorMessage
-				});
-			}else{
-				userAction = confirm(errorMessage + lineBreak + 'Do you still want to proceed?');
-			}
-			
-			if(userAction == false){
-				errors.length = 0;
-				if(currentSource == 1 || currentSource == 2)
-					jsonObject.length = 0;
-				currentSource = oldCurrentSource;
-				stepNumber = oldStepNumber;
-				completeJsonArr.pop();
-				return;
-			}
-			errors.length = 0;
-			resetStyle.length = 0;
+			return false;
 		}
-		
-		if (currentSource == 1) {
-			if (userAction == true) {
-				isGBUError = true;
-			} else {
-				isGBUError = false;
-			}
-			if (json === JSON.stringify(wizardObject[step_01])) {
-				json = '';
-			} else {
-				wizardObject[step_01] = JSON.parse(json);
-			}
-		} else if (currentSource == 2) {
-			if (userAction == true) {
-				isBrandError = true;
-			} else {
-				isBrandError = false;
-			}
-			if (json === JSON.stringify(wizardObject[step_02])) {
-				json = '';
-			} else {
-				wizardObject[step_02] = JSON.parse(json);
-			}
-		} else if (currentSource == 3) {
-			if (userAction == true || productErrorArray.indexOf(true) >= 0) {
-				isProductError = true;
-			} else {
-				isProductError = false;
-			}
-			if (json === JSON.stringify(wizardObject[step_03])) {
-				json = '';
-			} else {
-				wizardObject[step_03] = JSON.parse(json);
-			}
-		} else if (currentSource == 4) {
-			if (userAction == true ||sosErrorArray.indexOf(true) >= 0) {
-				isSOSError = true;
-			} else {
-				isSOSError = false;
-			}
-			if (json === JSON.stringify(wizardObject[step_04])) {
-				json = '';
-			} else {
-				wizardObject[step_04] = JSON.parse(json);
-			}
-		} else if (currentSource == 5) {
-			if (userAction == true) {
-				isRegionListError = true;
-			}else{
-				isRegionListError = false;
-			}
-			if (json === JSON.stringify(wizardObject[step_05])) {
-				json = '';
-			} else {
-				var tempSubRegionArray = new Array();
-				for(var iCounter = 0 ; iCounter < JSON.parse(json)["regionList"].length ; iCounter++ ){
-					if(JSON.parse(json)["regionList"][iCounter].name  === "NALAC"){
-						tempSubRegionArray = JSON.parse(json)["regionList"][iCounter].subRegList.slice(0);
-						JSON.parse(json)["regionList"][iCounter].subRegList = tempSubRegionArray;
-					}
-				}
-				wizardObject[step_05] = JSON.parse(json);
-			}
-		}
+		formValidationFunction(json);
 	}
-	
+		if(errorReturn != true){
+			wizardStepAjaxFunction(json,nextSource);
+		}
+}
+
+function wizardStepAjaxFunction(json,nextSource){
 	if(stepNumber == 6){
 		if($('#step1Btn').parent().attr('class') == 'warning-cls' || $('#step2Btn').parent().attr('class') == 'warning-cls' 
 			||$('#step3Btn').parent().attr('class') == 'warning-cls' || $('#step4Btn').parent().attr('class') == 'warning-cls'){
@@ -421,6 +353,106 @@ function navigate(nextSource, form1) {
 			});
 	while (jsonObject.length > 0) {
 		jsonObject.pop();
+	}
+}
+
+function formValidationFunction(json){
+	if(currentSource < 6){
+		completeJsonArr.push(JSON.parse(json));
+	}
+	
+	var isValid = validate(validationRuleList,completeJsonArr);
+	if(!isValid){
+		var errorMessage = '';
+		$.each(errors, function( index, error) {
+			if(currentSource == 1){
+				errorMessage = errorMessage + bulletStyle + error.message + jqLineBreak;
+			} else {
+				errorMessage = errorMessage + bulletStyle + error.message + lineBreak;
+			}
+			$("#"+error.fieldId).css("border-color","red");
+			resetStyle.push(error.fieldId);
+			$("[aria-labelledby='select2-"+error.fieldId+"-container']").css("border-color","red");
+			resetAutocompleteArrayStyle.push("[aria-labelledby='select2-"+error.fieldId+"-container']");
+		});
+		if(currentSource == 1){
+			$.alert({
+				title	: '',
+			    content : errorMessage
+			});
+		}else{
+			userAction = confirm(errorMessage + lineBreak + 'Do you still want to proceed?');
+		}
+		
+		if(userAction == false){
+			errors.length = 0;
+			if(currentSource == 1 || currentSource == 2)
+				jsonObject.length = 0;
+			currentSource = oldCurrentSource;
+			stepNumber = oldStepNumber;
+			completeJsonArr.pop();
+			errorReturn = true;
+			return;
+		}
+		errors.length = 0;
+		resetStyle.length = 0;
+	}
+	
+	if (currentSource == 1) {
+		if (userAction == true) {
+			isGBUError = true;
+		} else {
+			isGBUError = false;
+		}
+		if (json === JSON.stringify(wizardObject[step_01])) {
+			json = '';
+		} else {
+			wizardObject[step_01] = JSON.parse(json);
+		}
+	} else if (currentSource == 2) {
+		if (userAction == true) {
+			isBrandError = true;
+		} else {
+			isBrandError = false;
+		}
+		if (json === JSON.stringify(wizardObject[step_02])) {
+			json = '';
+		} else {
+			wizardObject[step_02] = JSON.parse(json);
+		}
+	} else if (currentSource == 3) {
+		if (userAction == true || productErrorArray.indexOf(true) >= 0) {
+			isProductError = true;
+		} else {
+			isProductError = false;
+		}
+		if (json === JSON.stringify(wizardObject[step_03])) {
+			json = '';
+		} else {
+			wizardObject[step_03] = JSON.parse(json);
+		}
+	} else if (currentSource == 4) {
+		if (userAction == true ||sosErrorArray.indexOf(true) >= 0) {
+			isSOSError = true;
+		} else {
+			isSOSError = false;
+		}
+		if (json === JSON.stringify(wizardObject[step_04])) {
+			json = '';
+		} else {
+			wizardObject[step_04] = JSON.parse(json);
+		}
+	} else if (currentSource == 5) {
+		if (userAction == true) {
+			isRegionListError = true;
+		}else{
+			isRegionListError = false;
+		}
+		if (json === JSON.stringify(wizardObject[step_05])) {
+			json = '';
+		} else {
+			wizardObject[step_05] = JSON.parse(json);
+		}
 	}
 }
 
@@ -594,7 +626,7 @@ function getSOSData(originCode,originDescription){
 			}
 			
 			if(originCode!= null){
-				$("#sourceDescription").val(data[2]).trigger('change');
+				$("#select2-sourceDescription-container").html(data[2]);
 			}else{
 				$("#select2-sourceCode-container").html(data[2]);
 			}
@@ -685,19 +717,6 @@ function getGeneratedId(){
 						internalIdArr.push(data[0]);
 						newProductIdArray.push(data[0]);
 						newProductTableIndexArray.push(productTableIndex);
-						var json = JSON.stringify(jsonObject);
-						json = "{" + '"productList"' + ":" + json + "}";
-						$.each(completeJsonArr, function( index, obj) {
-							if("productList" in obj){
-								completeJsonArr.splice(index,1);
-								return false;
-							}
-						});
-						if (json === JSON.stringify(wizardObject[step_03])) {
-							json = '';
-						} else {
-							wizardObject[step_03] = JSON.parse(json);
-						}
 						//saveDraftTask(data);
 					},
 					error : function(response, error, errorThrown) {
@@ -844,18 +863,18 @@ function brandFunction(isTemp) {
 
 function displayBrand(){
     var brand = jsonData["brandList"][0].brand; 
-     $('#brand').val(jsonData["brandList"][0].brand).trigger('change');
+     $('#brand').val(jsonData["brandList"][0].brand);
     fetchLookUpVal(gbu,'sub brand','brand',brand,'subBrand');
-    $('#subBrand').val(jsonData["brandList"][0].subBrand).trigger('change');
+    $('#subBrand').val(jsonData["brandList"][0].subBrand);
     $('#brandStrategy').val(jsonData["brandList"][0].brandStrategy);
     fetchLookUpVal(gbu,'style','brand',brand,'styleCode');
-    $('#styleCode').val(jsonData["brandList"][0].styleCode).trigger('change');
-    $('#acquisitionName').val(jsonData["brandList"][0].acquisitionName).trigger('change');
+    $('#styleCode').val(jsonData["brandList"][0].styleCode);
+    $('#acquisitionName').val(jsonData["brandList"][0].acquisitionName);
     $('#productSBI').val(jsonData["brandList"][0].productSBI);
     productDivisionLov();
     $('#productDivision').val(jsonData["brandList"][0].productDivision);
     var m4Family = jsonData["brandList"][0].m4Family;
-    $('#m4Family').val(jsonData["brandList"][0].m4Family).trigger('change');
+    $('#m4Family').val(jsonData["brandList"][0].m4Family);
     fetchLookUpVal(gbu,'M4 Product Group','M4 FAMILY',m4Family,'m4ProductGroup');
     var m4ProdGrp = jsonData["brandList"][0].m4ProductGroup;
     $('#m4ProductGroup').val(jsonData["brandList"][0].m4ProductGroup);
@@ -866,7 +885,7 @@ function displayBrand(){
     $('#shelfLife').val(jsonData["brandList"][0].shelfLife);
     $('#sterility').val(jsonData["brandList"][0].sterility);
     $('#variant').val(jsonData["brandList"][0].variant);
-    $('#inventoryCategory').val(jsonData["brandList"][0].inventoryCategory).trigger('change');
+    $('#inventoryCategory').val(jsonData["brandList"][0].inventoryCategory);
     $('#inventoryFamily').val(jsonData["brandList"][0].inventoryFamily);
     $('#productDescSuffix').val(jsonData["brandList"][0].productDescSuffix);
     if(jsonData["brandList"][0].cbox1 == 'Y'){
@@ -911,7 +930,7 @@ function deleteItem(a_deleteObject, a_deleteElement) {
 		$(a_deleteElement).closest("tr").remove();
 		jsonObject.splice(currentIndex-1 , 1);
 		sosErrorArray.splice(currentIndex-1 , 1);
-	}else if("gtc" === a_deleteObject || "GTC" === a_deleteObject){
+	}else if("gtc" === a_deleteObject){
 		$("select option[value*=1]").prop('disabled', false).css('background-color', '');
 		$("#div_region_gtc").hide();
 		$("#div_region_gtc table tr:last td:nth(0)").html("");
@@ -942,7 +961,7 @@ function deleteItem(a_deleteObject, a_deleteElement) {
 				break;
 			}
 		}
-	}else if("emea" === a_deleteObject || "EMEA" === a_deleteObject){
+	}else if("emea" === a_deleteObject){
 		$("select option[value*=2]").prop('disabled', false).css('background-color', '');
 		$("#div_region_emea").hide();
 		$("#div_region_emea table tr:last td:nth(0)").html("");
@@ -962,7 +981,7 @@ function deleteItem(a_deleteObject, a_deleteElement) {
 				break;
 			}
 		}
-	}else if("emea_sw" === a_deleteObject || "EMEA-SW" === a_deleteObject){
+	}else if("emea_sw" === a_deleteObject){
 		
 		$("select option[value*=3]").prop('disabled', false).css('background-color', '');
 		$("#div_region_emea_sw").hide();
@@ -983,8 +1002,7 @@ function deleteItem(a_deleteObject, a_deleteElement) {
 		if(wizardObject[step_01]['gbuList'][0].gbu != 'SEXUAL WELLNESS'){
 	    	$('#addRegionOptions option[value="3"]').attr('disabled',true).css('background-color','#ccc');
 	    }
-	}else if("nalac" === a_deleteObject || "NALAC" === a_deleteObject){
-		var copyOfMyArray;
+	}else if("nalac" === a_deleteObject){
 		$("select option[value*=4]").prop('disabled', false).css('background-color', '');
 		$("#div_region_na_lac").hide();
 		$("#div_region_na_lac table tr:last td:nth(0)").html("");
@@ -1008,7 +1026,7 @@ function deleteItem(a_deleteObject, a_deleteElement) {
 				break;
 			}
 		}
-	}else if("apac" === a_deleteObject || "APAC" === a_deleteObject){
+	}else if("apac" === a_deleteObject){
 		$("select option[value*=5]").prop('disabled', false).css('background-color', '');
 		$("#div_region_apac").hide();
 		$("#div_region_apac table tr:last td:nth(0)").html("");
@@ -1653,7 +1671,7 @@ function loadEMEAPopupData(){
 		fetchLookUpVal(null,'RUSSIAN LABEL CODE',null,null,'russianLabelEMEA');
 		$("#regionspopup #russianLabelEMEA").val($('#emeaTable tr:nth(1) td:nth(3)').text());
 	}
-	$("#regionspopup #primarySellingUOMEMEA").val($('#emeaTable tr:nth(1) td:nth(4)').text()).trigger('change');
+	$("#regionspopup #primarySellingUOMEMEA").val($('#emeaTable tr:nth(1) td:nth(4)').text());
 	$("#regionspopup #regionRowId").val($('#emeaTable tr:nth(1) td:nth(5)').text());
 }
 
@@ -1868,7 +1886,7 @@ function insertApacRegionTableFunction(isTemp) {
 
 function loadAPACPopupData(){
 	$('label[for=productStatusAPAC]').html($('#apacTable tr:nth(1) td:nth(0)').text());
-	$("#regionspopup #primarySellingUOMAPAC").val($('#apacTable tr:nth(1) td:nth(1)').text()).trigger('change');
+	$("#regionspopup #primarySellingUOMAPAC").val($('#apacTable tr:nth(1) td:nth(1)').text());
 	$("#regionspopup #regionRowId").val($('#apacTable tr:nth(1) td:nth(2)').text());
 }
 
@@ -2066,7 +2084,6 @@ function loadNALACPopupData(){
 }
 
 function showNALACData(){
-	
 	$("select#addRegionOptions option[value*=4]").prop('disabled', true).css('background-color', '#CCC');
 	
 	populateDataByFormula(jsonData[iRegionCounter]);
@@ -2091,50 +2108,11 @@ function showNALACData(){
 			trSubRegion += "</tr>";
 			jQuery(".nalac-subregion").append(trSubRegion);
 		});
-	}else if(cacheSubRegionItem.length > 0 && cacheNalacDataFlag == true){
-		jQuery.each(cacheSubRegionItem, function(index, value){
-			var trSubRegion = "<tr>";
-			trSubRegion += "<td>" + value.subRegion + "</td>";
-			trSubRegion += "<td>" + value.orgsInSubRegion + "</td>";
-			trSubRegion += "<td style=\"display: none;\">" + value.rowIdSubRegion + "</td>";
-			trSubRegion += "</tr>";
-			jQuery(".nalac-subregion").append(trSubRegion);
-		});
-		cacheNalacDataFlag = false;
-	}
-	/**
-	 * 		Code for subregion cache
-	 * 
-	 */
-	cacheSubRegionItem = new Array();
-	
-	for(var iCounter = 1 ; iCounter <= $('.nalac-subregion tbody tr').length-1 ; iCounter++){
-		var cacheSubRegion = new Object();
-		cacheSubRegion.subRegion = $('.nalac-subregion tr:nth('+iCounter+') td:nth(0)').html();
-		cacheSubRegion.orgsInSubRegion = $('.nalac-subregion tr:nth('+iCounter+') td:nth(1)').html();
-		if(iCounter-1 < subRegionArr.length && subRegionArr[iCounter -1].rowIdSubRegion != ''){
-			cacheSubRegion.rowIdSubRegion = subRegionArr[iCounter -1].rowIdSubRegion;
-		}else{
-			cacheSubRegion.rowIdSubRegion = "";
-		}
-		cacheSubRegionItem.push(cacheSubRegion);
 	}
 	
-	/**
-	 * END of sub region cache
-	 */
-	if(jsonData[iRegionCounter].subRegList != null && selectedSubRegionsDropdownIds.length>1){
+	if(jsonData[iRegionCounter].subRegList != null){
 		subRegionArr = selectedSubRegionsDropdownIds;
 		//jsonData[iRegionCounter].subRegList = selectedSubRegionsDropdownIds;
-	}else{
-		subRegionArr = new Array();
-		for(var iCounter = 0; iCounter < cacheSubRegionItem.length; iCounter++){
-			var subRegionObj = new Object();
-			subRegionObj.subRegion = cacheSubRegionItem[iCounter].subRegion;
-			subRegionObj.orgsInSubRegion = cacheSubRegionItem[iCounter].orgsInSubRegion;
-			subRegionObj.rowIdSubRegion = cacheSubRegionItem[iCounter].rowIdSubRegion;
-			subRegionArr.push(subRegionObj);
-		}
 	}
 	
 	jsonObject.push(jsonData[iRegionCounter]);
@@ -2194,7 +2172,7 @@ function addSOSPopup(sosRowRecord) {
 
 function insertSOSTableFunction(isTemp) {
 	var sosPopup = new Object();
-	sosPopup.sourceCode = $("#select2-sourceCode-container").html();
+	sosPopup.sourceCode = $("#sosPopup #sourceCode").find(":selected").val();
 	sosPopup.sourceCountry = $("#sosPopup #sourceCountry").val();
 	sosPopup.sourceDescription = $("#sosPopup #sourceDescription").val();
 	sosPopup.primaryOriginFlag = $("#sosPopup #primaryOriginFlag").prop('checked');
@@ -2728,10 +2706,10 @@ function insertProductTableFunction(isDuplicate, isTemp) {
 						$('#productTable tr:nth('+((iProductPackCounter*5) + 3)+') th:nth(16)').hide();
 						$('#productTable tr:nth('+((iProductPackCounter*5) + 4)+') td:nth(16)').hide();
 						
-						$('#productTable tr:nth('+iProductPackCounter+') th:nth(5)').hide();//For variant
+						$('#productTable tr:nth('+iProductPackCounter*5+') th:nth(5)').hide();//For variant
 						$('#productTable tr:nth('+((iProductPackCounter*5) + 1)+') td:nth(6)').hide();//For variant
 						
-						$('#productTable tr:nth('+iProductPackCounter+') th:nth(6)').hide();//For productDescriptionSuffix
+						$('#productTable tr:nth('+iProductPackCounter*5+') th:nth(6)').hide();//For productDescriptionSuffix
 						$('#productTable tr:nth('+((iProductPackCounter*5) + 1)+') td:nth(7)').hide();//For productDescriptionSuffix
 					}
 					
@@ -2745,13 +2723,13 @@ function insertProductTableFunction(isDuplicate, isTemp) {
 						$('#productTable tr:nth('+iProductPackCounter+') th:nth(12)').show();
 						$('#productTable tr:nth('+((iProductPackCounter*5) + 1)+') td:nth(13)').show();
 					}else{
-						$('#productTable tr:nth('+iProductPackCounter+') th:nth(10)').hide();
+						$('#productTable tr:nth('+iProductPackCounter*5+') th:nth(10)').hide();
 						$('#productTable tr:nth('+((iProductPackCounter*5) + 1)+') td:nth(11)').hide();
 						
-						$('#productTable tr:nth('+iProductPackCounter+') th:nth(11)').hide();
+						$('#productTable tr:nth('+iProductPackCounter*5+') th:nth(11)').hide();
 						$('#productTable tr:nth('+((iProductPackCounter*5) + 1)+') td:nth(12)').hide();
 						
-						$('#productTable tr:nth('+iProductPackCounter+') th:nth(12)').hide();
+						$('#productTable tr:nth('+iProductPackCounter*5+') th:nth(12)').hide();
 						$('#productTable tr:nth('+((iProductPackCounter*5) + 1)+') td:nth(13)').hide();
 					}
 				}
@@ -2808,10 +2786,10 @@ function showProductData(a_isPreviewPage){
 					$('#productTable tr:nth('+((iProductCounter*5) + 3)+') th:nth(16)').hide();
 					$('#productTable tr:nth('+((iProductCounter*5) + 4)+') td:nth(16)').hide();
 						
-					$('#productTable tr:nth('+iProductCounter+') th:nth(5)').hide();//For variant
+					$('#productTable tr:nth('+iProductCounter*5+') th:nth(5)').hide();//For variant
 					$('#productTable tr:nth('+((iProductCounter*5) + 1)+') td:nth(6)').hide();//For variant
 						
-					$('#productTable tr:nth('+iProductCounter+') th:nth(6)').hide();//For productDescriptionSuffix
+					$('#productTable tr:nth('+iProductCounter*5+') th:nth(6)').hide();//For productDescriptionSuffix
 					$('#productTable tr:nth('+((iProductCounter*5) + 1)+') td:nth(7)').hide();//For productDescriptionSuffix
 				}
 					
@@ -2825,13 +2803,13 @@ function showProductData(a_isPreviewPage){
 					$('#productTable tr:nth('+iProductCounter+') th:nth(12)').show();
 					$('#productTable tr:nth('+((iProductCounter*5) + 1)+') td:nth(13)').show();
 				}else{
-					$('#productTable tr:nth('+iProductCounter+') th:nth(10)').hide();
+					$('#productTable tr:nth('+iProductCounter*5+') th:nth(10)').hide();
 					$('#productTable tr:nth('+((iProductCounter*5) + 1)+') td:nth(11)').hide();
 					
-					$('#productTable tr:nth('+iProductCounter+') th:nth(11)').hide();
+					$('#productTable tr:nth('+iProductCounter*5+') th:nth(11)').hide();
 					$('#productTable tr:nth('+((iProductCounter*5) + 1)+') td:nth(12)').hide();
 					
-					$('#productTable tr:nth('+iProductCounter+') th:nth(12)').hide();
+					$('#productTable tr:nth('+iProductCounter*5+') th:nth(12)').hide();
 					$('#productTable tr:nth('+((iProductCounter*5) + 1)+') td:nth(13)').hide();
 				}
 				
@@ -3980,7 +3958,6 @@ function checkEditScreen(editScreen){
 /////////////////////////-------------------SAVE DATA ON CLOSE starts--------------------------------------------
 function saveDataOnClose(isRedirect){
 	var json;
-	cacheSubRegionItem = new Array();
 	if (stepNumber == 1) {
 		gbuFunction(false);
 
@@ -3993,53 +3970,22 @@ function saveDataOnClose(isRedirect){
 
 		if (stepNumber == 1) {
 			json = "{" + '"gbuList"' + ":" + json + "}";
-			
-			if (json === JSON.stringify(wizardObject[step_01])) {
-				json = '';
-			} else {
-				wizardObject[step_01] = JSON.parse(json);
-			}
 		} 
 		else if (stepNumber == 2) {
 			json = "{" + '"brandList"' + ":" + json + "}";
 
-			if (json === JSON.stringify(wizardObject[step_02])) {
-				json = '';
-			} else {
-				wizardObject[step_02] = JSON.parse(json);
-			}
+
 		} else if (stepNumber == 3) {
 			json = "{" + '"productList"' + ":" + json + "}";
 
-			if (json === JSON.stringify(wizardObject[step_03])) {
-				json = '';
-			} else {
-				wizardObject[step_03] = JSON.parse(json);
-			}
+
 		} else if (stepNumber == 4) {
 			json = "{" + '"sosList"' + ":" + json + "}";
 
-			if (json === JSON.stringify(wizardObject[step_04])) {
-				json = '';
-			} else {
-				wizardObject[step_04] = JSON.parse(json);
-			}
+
 		} else if (stepNumber == 5) {
 			json = "{" + '"regionList"' + ":" + json + "}";
-			
-			if (json === JSON.stringify(wizardObject[step_05])) {
-				json = '';
-			} else {
-				var tempSubRegionArray = new Array();
-				for(var iCounter = 0 ; iCounter < JSON.parse(json)["regionList"].length ; iCounter++ ){
-					if(JSON.parse(json)["regionList"][iCounter].name  === "NALAC"){
-						var tempSubRegionArray = JSON.parse(json)["regionList"][iCounter].subRegList.slice(0);
-						JSON.parse(json)["regionList"][iCounter].subRegList = tempSubRegionArray;
-					}
-				}
-				wizardObject[step_05] = JSON.parse(json);
-				cacheSubRegionItem = tempSubRegionArray;
-			}
+
 		}
 		if(wizardObject[step_03] != ''){
 			var l_productList = wizardObject[step_03].productList;
@@ -4166,6 +4112,7 @@ function updateProperties(stepNumber){
 
 ////////////////////////// ---------------------------------- Cancel Data ---------------------------------------------------
 function cancelData(){
+	
 	var cancelDataAction;
 	if(editScreen != '' && editScreen != undefined && editScreen != 'copyProduct' &&  editScreen != 'newSOSForEMEA_APAC'){
 		cancelDataAction = confirm(cancelForUpdate + lineBreak + 'Do you still want to proceed?');
@@ -4210,7 +4157,7 @@ function cancelData(){
 		}
 	});
 	
-}// ************* END of close data
+} // ************* END of close data
 
 function getAllSystemData(){
 	if (wizardObject[step_03].length > 0 || wizardObject[step_03].length == undefined) {

@@ -1,1 +1,14 @@
-Hi
+Chemical order - Done
+Only approved chemicals -
+Lengend jSP
+Type of chemical- single update
+if user enters btt min select certified
+full stanard name HP and BP
+bulk update - source product- changes
+if user select show selected checkbox then clear the search field
+after bulk updated - confirmation message.
+Searching and sorting on Min and max fields.
+obsolete products group disable
+If btt min is present show min else class
+Width for action column.
+After single chemical update and bulk update hightlight selected chemicals.

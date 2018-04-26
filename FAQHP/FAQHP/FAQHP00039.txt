@@ -1,1 +1,25 @@
-Hi
+select count(*) from(SELECT 
+    ccs.chem_substance_id AS chemicalSubstanceId,
+    ccs.trade_name AS chemicalTradeName,
+    ccs.CAS_reference AS casReference,
+    ccs.is_pure AS isPure,
+    ccs.min_conc AS minConc,
+    ccs.max_conc AS maxConc,
+    ccs.is_mix AS isMix
+--    cbtdd.btdd_id AS btddId,
+--    cbtdd.product_group_id AS productGroupId
+FROM
+
+        crms_chemical_substance AS ccs
+    INNER JOIN int_chemical_product_category_association icpca ON icpca.chem_substance_id = ccs.chem_substance_id
+   
+--        LEFT OUTER JOIN
+--    crms_btdd cbtdd ON cbtdd.chem_substance_id = ccs.chem_substance_id
+       
+ WHERE
+        ccs.is_deleted = 0 AND ccs.active = 'A'
+            AND icpca.is_deleted = 0
+  --           AND cbtdd.product_group_id = 'db6365a3-68c4-11e7-b88c-000d3a173cc5'
+  --      AND cbtdd.is_certified IN (0)
+GROUP BY ccs.chem_substance_id     
+ ORDER BY ccs.is_mix DESC , ccs.trade_name ASC , ccs.CAS_reference ASC)as a 
